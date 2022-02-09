@@ -1,0 +1,28 @@
+{
+  "name": "react-native-itch",
+  "version": "1.0.0",
+  "description": "Scratch view for react native",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/badiozam/react-native-itch"
+  },
+  "keywords": [
+    "react-native",
+    "react-native-itch",
+    "react-native-itch-view",
+    "react-native-itch-card",
+    "react-native-itch-image",
+    "scratch",
+    "scratch-card",
+    "scratch-view",
+    "scratch-image"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "react-native": "0.65"
+  }
+}
