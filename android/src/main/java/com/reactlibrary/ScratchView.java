@@ -50,10 +50,12 @@ public class ScratchView extends View implements View.OnTouchListener {
     float totalCriticalPoints;
     int clearedCriticalPoints;
     float criticalProgress;
+    float criticalRadius = 0;
     float criticalRadiusSq = 0;
     float criticalCenterX = 0;
     float criticalCenterY = 0;
 
+    Paint criticalPaint = new Paint();
     Paint imagePaint = new Paint();
     Paint pathPaint = new Paint();
 
@@ -89,6 +91,9 @@ public class ScratchView extends View implements View.OnTouchListener {
         pathPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         pathPaint.setAntiAlias(true);
 
+        criticalPaint.setStyle(Paint.Style.FILL);
+        criticalPaint.setColor(Color.GRAY);
+
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
@@ -103,8 +108,8 @@ public class ScratchView extends View implements View.OnTouchListener {
     }
 
     public void setCriticalRadius(float criticalRadius) {
+        this.criticalRadius = criticalRadius;
         this.criticalRadiusSq = criticalRadius * criticalRadius;
-        this.totalCriticalPoints = (float) (Math.PI * criticalRadiusSq);
     }
 
     public void setCriticalCenterX(float criticalCenterX) {
@@ -120,7 +125,7 @@ public class ScratchView extends View implements View.OnTouchListener {
     }
 
     public void setBrushSize(float brushSize) {
-        this.brushSize = brushSize * 3;
+        this.brushSize = brushSize;
     }
 
     public void setImageUrl(String imageUrl) {
@@ -190,7 +195,7 @@ public class ScratchView extends View implements View.OnTouchListener {
     public void reset() {
         minDimension = getWidth() > getHeight() ? getHeight() : getWidth();
         brushSize = brushSize > 0 ? brushSize : (minDimension / 10.0f);
-        brushSize = Math.max(1, Math.min(100, brushSize));
+        brushSize = Math.max(1, Math.min(minDimension / 4.0f, brushSize));
         threshold = threshold > 0 ? threshold : 50;
 
         loadImage();
@@ -203,6 +208,7 @@ public class ScratchView extends View implements View.OnTouchListener {
 
     public void initGrid() {
         gridSize = (float) Math.max(Math.min(Math.ceil(minDimension / brushSize), 29), 9);
+        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq) / brushSize;
 
         grid = new ArrayList();
         for (int x = 0; x < gridSize; x++) {
@@ -251,7 +257,7 @@ public class ScratchView extends View implements View.OnTouchListener {
                     offsetY +
                     ", distSquared = " +
                     distSquared +
-                    ",criticalRadiusSq = " +
+                    ", criticalRadiusSq = " +
                     criticalRadiusSq
                 );
 
@@ -261,7 +267,20 @@ public class ScratchView extends View implements View.OnTouchListener {
                 //
                 if (distSquared <= criticalRadiusSq) {
                     clearedCriticalPoints++;
-                    criticalProgress = ((float) clearedCriticalPoints) / totalCriticalPoints * 100.0f;
+                    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
+                    Log.d(
+                        "ReactItch",
+                        "Critical progress: " +
+                        clearedCriticalPoints +
+                        " @ brush size " +
+                        brushSize +
+                        " => " +
+                        (clearedCriticalPoints * brushSize * brushSize) +
+                        " / " +
+                        totalCriticalPoints +
+                        " = " +
+                        criticalProgress
+                    );
                     reportCriticalProgress();
                 }
 
@@ -377,6 +396,10 @@ public class ScratchView extends View implements View.OnTouchListener {
         }
 
         canvas.drawBitmap(image, new Rect(0, 0, image.getWidth(), image.getHeight()), imageRect, imagePaint);
+
+        if (!imageTakenFromView && criticalRadius > 0) {
+            canvas.drawCircle(criticalCenterX, criticalCenterY, criticalRadius, criticalPaint);
+        }
 
         if (path != null) {
             canvas.drawPath(path, pathPaint);
