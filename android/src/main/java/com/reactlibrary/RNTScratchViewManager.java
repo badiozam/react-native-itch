@@ -1,16 +1,15 @@
 package com.como.RNTScratchView;
 
 import androidx.annotation.Nullable;
-
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
-
 import java.util.Map;
 
 public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
+
     public static final String REACT_CLASS = "RNTScratchView";
     public static final String EVENT_IMAGE_LOAD = "onImageLoadFinished";
     public static final String EVENT_TOUCH_STATE_CHANGED = "onTouchStateChanged";
@@ -91,16 +90,15 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     }
 
     public Map getExportedCustomBubblingEventTypeConstants() {
-        return MapBuilder.builder()
-                .put(EVENT_IMAGE_LOAD,
-                        MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_IMAGE_LOAD)))
-                .put(EVENT_TOUCH_STATE_CHANGED,
-                        MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_TOUCH_STATE_CHANGED)))
-                .put(EVENT_SCRATCH_PROGRESS_CHANGED,
-                        MapBuilder.of("phasedRegistrationNames",
-                                MapBuilder.of("bubbled", EVENT_SCRATCH_PROGRESS_CHANGED)))
-                .put(EVENT_SCRATCH_DONE,
-                        MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_DONE)))
-                .build();
+        return MapBuilder
+            .builder()
+            .put(EVENT_IMAGE_LOAD, MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_IMAGE_LOAD)))
+            .put(EVENT_TOUCH_STATE_CHANGED, MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_TOUCH_STATE_CHANGED)))
+            .put(
+                EVENT_SCRATCH_PROGRESS_CHANGED,
+                MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_PROGRESS_CHANGED))
+            )
+            .put(EVENT_SCRATCH_DONE, MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_DONE)))
+            .build();
     }
 }

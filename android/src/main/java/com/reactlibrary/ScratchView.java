@@ -9,23 +9,27 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import java.util.ArrayList;
 import android.graphics.Rect;
-import androidx.annotation.Nullable;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
-
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class ScratchView extends View implements View.OnTouchListener {
+
     boolean imageTakenFromView = false;
     float threshold = 0;
     float brushSize = 0;
@@ -112,28 +116,51 @@ public class ScratchView extends View implements View.OnTouchListener {
         }
     }
 
+    // From: https://stackoverflow.com/a/41470146
+    //
+    private static Bitmap getBitmap(VectorDrawable vectorDrawable) {
+        Bitmap bitmap = Bitmap.createBitmap(
+            vectorDrawable.getIntrinsicWidth(),
+            vectorDrawable.getIntrinsicHeight(),
+            Bitmap.Config.ARGB_8888
+        );
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        vectorDrawable.draw(canvas);
+        return bitmap;
+    }
+
     private void loadImage() {
         path = null;
         if (imageUrl != null) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        InputStream is = (InputStream) new URL(imageUrl).getContent();
-                        image = BitmapFactory.decodeStream(is).copy(Bitmap.Config.ARGB_8888, true);
-                        reportImageLoadFinished(true);
-                        invalidate();
-
-                    } catch (Exception e) {
-                        reportImageLoadFinished(false);
-                        e.printStackTrace();
+            Thread thread = new Thread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            InputStream is = (InputStream) new URL(imageUrl).getContent();
+                            image = BitmapFactory.decodeStream(is).copy(Bitmap.Config.ARGB_8888, true);
+                            reportImageLoadFinished(true);
+                            invalidate();
+                        } catch (Exception e) {
+                            reportImageLoadFinished(false);
+                            e.printStackTrace();
+                        }
                     }
                 }
-            });
+            );
             thread.start();
         } else if (resourceName != null) {
+            Log.d("ReactItch", "Loading resource with supplied name '" + resourceName + "' w/ context " + getContext().getPackageName());
             int imageResourceId = getResources().getIdentifier(resourceName, "drawable", getContext().getPackageName());
-            image = BitmapFactory.decodeResource(getContext().getResources(), imageResourceId);
+            Log.d("ReactItch", "Received imageResourceId: " + imageResourceId);
+            Drawable drawable = ContextCompat.getDrawable(getContext(), imageResourceId);
+            if (drawable instanceof BitmapDrawable) {
+                image = BitmapFactory.decodeResource(getContext().getResources(), imageResourceId);
+            } else if (drawable instanceof VectorDrawable) {
+                image = getBitmap((VectorDrawable) drawable);
+            }
+            Log.d("ReactItch", "Done loading image");
             reportImageLoadFinished(true);
             invalidate();
         }
@@ -188,8 +215,8 @@ public class ScratchView extends View implements View.OnTouchListener {
         if (context instanceof ReactContext) {
             WritableMap event = Arguments.createMap();
             event.putBoolean("success", success);
-            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(),
-                    RNTScratchViewManager.EVENT_IMAGE_LOAD, event);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_IMAGE_LOAD, event);
         }
     }
 
@@ -198,8 +225,8 @@ public class ScratchView extends View implements View.OnTouchListener {
         if (context instanceof ReactContext) {
             WritableMap event = Arguments.createMap();
             event.putBoolean("touchState", state);
-            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(),
-                    RNTScratchViewManager.EVENT_TOUCH_STATE_CHANGED, event);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_TOUCH_STATE_CHANGED, event);
         }
     }
 
@@ -208,8 +235,8 @@ public class ScratchView extends View implements View.OnTouchListener {
         if (context instanceof ReactContext) {
             WritableMap event = Arguments.createMap();
             event.putDouble("progressValue", Math.round(scratchProgress * 100.0f) / 100.0);
-            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(),
-                    RNTScratchViewManager.EVENT_SCRATCH_PROGRESS_CHANGED, event);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_SCRATCH_PROGRESS_CHANGED, event);
         }
     }
 
@@ -218,8 +245,8 @@ public class ScratchView extends View implements View.OnTouchListener {
         if (context instanceof ReactContext) {
             WritableMap event = Arguments.createMap();
             event.putBoolean("isScratchDone", cleared);
-            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(),
-                    RNTScratchViewManager.EVENT_SCRATCH_DONE, event);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_SCRATCH_DONE, event);
         }
     }
 
@@ -230,8 +257,8 @@ public class ScratchView extends View implements View.OnTouchListener {
             reset();
         }
 
-        if (!imageTakenFromView) {
-            canvas.drawColor(this.placeholderColor != -1 ? this.placeholderColor : Color.GRAY);
+        if (!imageTakenFromView && this.placeholderColor != -1) {
+            canvas.drawColor(this.placeholderColor);
         }
 
         if (image == null) {
@@ -246,20 +273,20 @@ public class ScratchView extends View implements View.OnTouchListener {
             float imageAspect = (float) image.getWidth() / (float) image.getHeight();
             float viewAspect = viewWidth / viewHeight;
             switch (resizeMode) {
-            case "cover":
-                if (imageAspect > viewAspect) {
-                    offsetX = (int) (((viewHeight * imageAspect) - viewWidth) / 2.0f);
-                } else {
-                    offsetY = (int) (((viewWidth / imageAspect) - viewHeight) / 2.0f);
-                }
-                break;
-            case "contain":
-                if (imageAspect < viewAspect) {
-                    offsetX = (int) (((viewHeight * imageAspect) - viewWidth) / 2.0f);
-                } else {
-                    offsetY = (int) (((viewWidth / imageAspect) - viewHeight) / 2.0f);
-                }
-                break;
+                case "cover":
+                    if (imageAspect > viewAspect) {
+                        offsetX = (int) (((viewHeight * imageAspect) - viewWidth) / 2.0f);
+                    } else {
+                        offsetY = (int) (((viewWidth / imageAspect) - viewHeight) / 2.0f);
+                    }
+                    break;
+                case "contain":
+                    if (imageAspect < viewAspect) {
+                        offsetX = (int) (((viewHeight * imageAspect) - viewWidth) / 2.0f);
+                    } else {
+                        offsetY = (int) (((viewWidth / imageAspect) - viewHeight) / 2.0f);
+                    }
+                    break;
             }
             imageRect = new Rect(-offsetX, -offsetY, getWidth() + offsetX, getHeight() + offsetY);
         }
@@ -277,28 +304,27 @@ public class ScratchView extends View implements View.OnTouchListener {
         int y = (int) motionEvent.getY();
 
         switch (motionEvent.getAction()) {
-        case MotionEvent.ACTION_DOWN:
-            image = createBitmapFromView();
-            reportTouchState(true);
-            float strokeWidth = brushSize > 0 ? brushSize
-                    : ((getHeight() < getWidth() ? getHeight() : getWidth()) / 10f);
-            imageRect = new Rect(0, 0, getWidth(), getHeight());
-            pathPaint.setStrokeWidth(strokeWidth);
-            path = new Path();
-            path.moveTo(x, y);
-            break;
-        case MotionEvent.ACTION_MOVE:
-            if (path != null) {
-                path.lineTo(x, y);
-                updateGrid(x, y);
-            }
-            break;
-        case MotionEvent.ACTION_CANCEL:
-        case MotionEvent.ACTION_UP:
-            reportTouchState(false);
-            image = createBitmapFromView();
-            path = null;
-            break;
+            case MotionEvent.ACTION_DOWN:
+                image = createBitmapFromView();
+                reportTouchState(true);
+                float strokeWidth = brushSize > 0 ? brushSize : ((getHeight() < getWidth() ? getHeight() : getWidth()) / 10f);
+                imageRect = new Rect(0, 0, getWidth(), getHeight());
+                pathPaint.setStrokeWidth(strokeWidth);
+                path = new Path();
+                path.moveTo(x, y);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (path != null) {
+                    path.lineTo(x, y);
+                    updateGrid(x, y);
+                }
+                break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                reportTouchState(false);
+                image = createBitmapFromView();
+                path = null;
+                break;
         }
         invalidate();
         return true;
