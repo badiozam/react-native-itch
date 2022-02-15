@@ -46,6 +46,14 @@ public class ScratchView extends View implements View.OnTouchListener {
     float scratchProgress;
     int placeholderColor = -1;
 
+    boolean criticalCleared;
+    int totalCriticalPoints;
+    int clearedCriticalPoints;
+    float criticalProgress;
+    float criticalRadius = 0;
+    float criticalCenterX = 0;
+    float criticalCenterY = 0;
+
     Paint imagePaint = new Paint();
     Paint pathPaint = new Paint();
 
@@ -92,6 +100,18 @@ public class ScratchView extends View implements View.OnTouchListener {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public void setCriticalRadius(float criticalRadius) {
+        this.criticalRadius = criticalRadius;
+    }
+
+    public void setCriticalCenterX(float criticalCenterX) {
+        this.criticalCenterX = criticalCenterX;
+    }
+
+    public void setCriticalCenterY(float criticalCenterY) {
+        this.criticalCenterY = criticalCenterY;
     }
 
     public void setThreshold(float threshold) {
@@ -176,6 +196,8 @@ public class ScratchView extends View implements View.OnTouchListener {
         initGrid();
         reportScratchProgress();
         reportScratchState();
+        reportCriticalProgress();
+        reportCriticalScratchState();
     }
 
     public void initGrid() {
@@ -191,6 +213,11 @@ public class ScratchView extends View implements View.OnTouchListener {
         clearPointsCounter = 0;
         cleared = false;
         scratchProgress = 0;
+
+        criticalCleared = false;
+        criticalProgress = 0;
+        totalCriticalPoints = 0;
+        clearedCriticalPoints = 0;
     }
 
     public void updateGrid(int x, int y) {
@@ -203,9 +230,11 @@ public class ScratchView extends View implements View.OnTouchListener {
             clearPointsCounter++;
             scratchProgress = ((float) clearPointsCounter) / (gridSize * gridSize) * 100.0f;
             reportScratchProgress();
+            reportCriticalProgress();
             if (!cleared && scratchProgress > threshold) {
                 cleared = true;
                 reportScratchState();
+                reportCriticalScratchState();
             }
         }
     }
@@ -247,6 +276,26 @@ public class ScratchView extends View implements View.OnTouchListener {
             event.putBoolean("isScratchDone", cleared);
             ((ReactContext) context).getJSModule(RCTEventEmitter.class)
                 .receiveEvent(getId(), RNTScratchViewManager.EVENT_SCRATCH_DONE, event);
+        }
+    }
+
+    public void reportCriticalProgress() {
+        final Context context = getContext();
+        if (context instanceof ReactContext) {
+            WritableMap event = Arguments.createMap();
+            event.putDouble("progressValue", Math.round(scratchProgress * 100.0f) / 100.0);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_CRITICAL_PROGRESS_CHANGED, event);
+        }
+    }
+
+    public void reportCriticalScratchState() {
+        final Context context = getContext();
+        if (context instanceof ReactContext) {
+            WritableMap event = Arguments.createMap();
+            event.putBoolean("isScratchDone", cleared);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_CRITICAL_SCRATCH_DONE, event);
         }
     }
 
