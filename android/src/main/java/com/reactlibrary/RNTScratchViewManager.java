@@ -15,6 +15,8 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     public static final String EVENT_TOUCH_STATE_CHANGED = "onTouchStateChanged";
     public static final String EVENT_SCRATCH_PROGRESS_CHANGED = "onScratchProgressChanged";
     public static final String EVENT_SCRATCH_DONE = "onScratchDone";
+    public static final String EVENT_CRITICAL_SCRATCH_DONE = "onCriticalScratchDone";
+    public static final String EVENT_CRITICAL_PROGRESS_CHANGED = "onCriticalProgressChanged";
 
     @ReactProp(name = "placeholderColor")
     public void setPlaceholderColor(final ScratchView scratchView, @Nullable String placeholderColor) {
@@ -51,17 +53,31 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
         }
     }
 
-    @ReactProp(name = "localImageName") // deprecated
-    public void setLocalImageName(final ScratchView scratchView, @Nullable String localImageName) {
-        if (scratchView != null) {
-            scratchView.setResourceName(localImageName);
-        }
-    }
-
     @ReactProp(name = "resizeMode")
     public void setResizeMode(final ScratchView scratchView, @Nullable String resizeMode) {
         if (scratchView != null) {
             scratchView.setResizeMode(resizeMode);
+        }
+    }
+
+    @ReactProp(name = "criticalRadius")
+    public void setCriticalRadius(final ScratchView scratchView, @Nullable float criticalRadius) {
+        if (scratchView != null) {
+            scratchView.setCriticalRadius(criticalRadius);
+        }
+    }
+
+    @ReactProp(name = "criticalCenterX")
+    public void setCriticalCenterX(final ScratchView scratchView, @Nullable float criticalCenterX) {
+        if (scratchView != null) {
+            scratchView.setCriticalCenterX(criticalCenterX);
+        }
+    }
+
+    @ReactProp(name = "criticalCenterY")
+    public void setCriticalCenterY(final ScratchView scratchView, @Nullable float criticalCenterY) {
+        if (scratchView != null) {
+            scratchView.setCriticalCenterY(criticalCenterY);
         }
     }
 
@@ -99,6 +115,14 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
                 MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_PROGRESS_CHANGED))
             )
             .put(EVENT_SCRATCH_DONE, MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_DONE)))
+            .put(
+                EVENT_CRITICAL_PROGRESS_CHANGED,
+                MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_CRITICAL_PROGRESS_CHANGED))
+            )
+            .put(
+                EVENT_CRITICAL_SCRATCH_DONE,
+                MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_CRITICAL_SCRATCH_DONE))
+            )
             .build();
     }
 }
