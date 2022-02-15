@@ -217,7 +217,6 @@ public class ScratchView extends View implements View.OnTouchListener {
         reportScratchProgress();
         reportScratchState();
         reportCriticalProgress();
-        reportCriticalScratchState();
     }
 
     public void initGrid() {
@@ -259,22 +258,6 @@ public class ScratchView extends View implements View.OnTouchListener {
                 float offsetY = criticalCenterY - y;
                 float distSquared = offsetX * offsetX + offsetY * offsetY;
 
-                Log.d(
-                    "ReactItch",
-                    "Received point @ (" +
-                    x +
-                    ", " +
-                    y +
-                    ") Offset X = " +
-                    offsetX +
-                    ", offsetY = " +
-                    offsetY +
-                    ", distSquared = " +
-                    distSquared +
-                    ", criticalRadiusSq = " +
-                    criticalRadiusSq
-                );
-
                 // If that distance is less than the radius, then we're
                 // inside the circle and we count the point as being
                 // critical
@@ -282,23 +265,16 @@ public class ScratchView extends View implements View.OnTouchListener {
                 if (distSquared <= criticalRadiusSq) {
                     clearedCriticalPoints++;
                     criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
-                    Log.d(
-                        "ReactItch",
-                        "Critical progress: " +
-                        clearedCriticalPoints +
-                        " @ brush size " +
-                        brushSize +
-                        "^2 => " +
-                        (clearedCriticalPoints * Math.pow(brushSize, 2)) +
-                        " / " +
-                        totalCriticalPoints +
-                        " = " +
-                        criticalProgress
-                    );
                     reportCriticalProgress();
                 }
 
-                reportCriticalScratchState();
+                // Threshold applies to the critical area if one is specified
+                // otherwise, we treat the whole image as a critical area
+                //
+                if (!cleared && criticalProgress > threshold) {
+                    cleared = true;
+                    reportScratchState();
+                }
             }
 
             if (!cleared && scratchProgress > threshold) {
@@ -355,16 +331,6 @@ public class ScratchView extends View implements View.OnTouchListener {
             event.putDouble("progressValue", Math.round(criticalProgress * 100.0f) / 100.0);
             ((ReactContext) context).getJSModule(RCTEventEmitter.class)
                 .receiveEvent(getId(), RNTScratchViewManager.EVENT_CRITICAL_PROGRESS_CHANGED, event);
-        }
-    }
-
-    public void reportCriticalScratchState() {
-        final Context context = getContext();
-        if (context instanceof ReactContext) {
-            WritableMap event = Arguments.createMap();
-            event.putBoolean("isScratchDone", cleared);
-            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
-                .receiveEvent(getId(), RNTScratchViewManager.EVENT_CRITICAL_SCRATCH_DONE, event);
         }
     }
 

@@ -15,7 +15,6 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     public static final String EVENT_TOUCH_STATE_CHANGED = "onTouchStateChanged";
     public static final String EVENT_SCRATCH_PROGRESS_CHANGED = "onScratchProgressChanged";
     public static final String EVENT_SCRATCH_DONE = "onScratchDone";
-    public static final String EVENT_CRITICAL_SCRATCH_DONE = "onCriticalScratchDone";
     public static final String EVENT_CRITICAL_PROGRESS_CHANGED = "onCriticalProgressChanged";
 
     @ReactProp(name = "placeholderColor")
@@ -125,10 +124,6 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
             .put(
                 EVENT_CRITICAL_PROGRESS_CHANGED,
                 MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_CRITICAL_PROGRESS_CHANGED))
-            )
-            .put(
-                EVENT_CRITICAL_SCRATCH_DONE,
-                MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_CRITICAL_SCRATCH_DONE))
             )
             .build();
     }
