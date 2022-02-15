@@ -1,9 +1,11 @@
 {
   "name": "react-native-itch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Scratch view for react native",
+  "summary": "This implementation is forked from react-native-scratch to work with RN 0.65 and iOS pods",
   "main": "index.js",
   "scripts": {
+    "prettier": "prettier -w .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,8 +23,13 @@
     "scratch-view",
     "scratch-image"
   ],
+  "homepage": "https://github.com/badiozam/react-native-itch",
   "license": "MIT",
   "peerDependencies": {
     "react-native": "0.65"
+  },
+  "devDependencies": {
+    "prettier": "^2",
+    "prettier-plugin-java": "^1"
   }
 }
