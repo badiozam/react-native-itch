@@ -222,7 +222,7 @@ public class ScratchView extends View implements View.OnTouchListener {
 
     public void initGrid() {
         gridSize = (float) Math.max(Math.min(Math.ceil(minDimension / brushSize), 29), 9);
-        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq) / gridSize;
+        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq);
 
         grid = new ArrayList();
         for (int x = 0; x < gridSize; x++) {
@@ -281,15 +281,15 @@ public class ScratchView extends View implements View.OnTouchListener {
                 //
                 if (distSquared <= criticalRadiusSq) {
                     clearedCriticalPoints++;
-                    criticalProgress = ((float) clearedCriticalPoints) / totalCriticalPoints * 100.0f;
+                    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
                     Log.d(
                         "ReactItch",
                         "Critical progress: " +
                         clearedCriticalPoints +
-                        " @ grid size " +
-                        gridSize +
-                        " => " +
-                        (clearedCriticalPoints * brushSize) +
+                        " @ brush size " +
+                        brushSize +
+                        "^2 => " +
+                        (clearedCriticalPoints * Math.pow(brushSize, 2)) +
                         " / " +
                         totalCriticalPoints +
                         " = " +
