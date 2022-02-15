@@ -47,10 +47,10 @@ public class ScratchView extends View implements View.OnTouchListener {
     int placeholderColor = -1;
 
     boolean criticalCleared;
-    int totalCriticalPoints;
+    float totalCriticalPoints;
     int clearedCriticalPoints;
     float criticalProgress;
-    float criticalRadius = 0;
+    float criticalRadiusSq = 0;
     float criticalCenterX = 0;
     float criticalCenterY = 0;
 
@@ -103,7 +103,8 @@ public class ScratchView extends View implements View.OnTouchListener {
     }
 
     public void setCriticalRadius(float criticalRadius) {
-        this.criticalRadius = criticalRadius;
+        this.criticalRadiusSq = criticalRadius * criticalRadius;
+        this.totalCriticalPoints = (float) (Math.PI * criticalRadiusSq);
     }
 
     public void setCriticalCenterX(float criticalCenterX) {
@@ -216,7 +217,6 @@ public class ScratchView extends View implements View.OnTouchListener {
 
         criticalCleared = false;
         criticalProgress = 0;
-        totalCriticalPoints = 0;
         clearedCriticalPoints = 0;
     }
 
@@ -230,11 +230,47 @@ public class ScratchView extends View implements View.OnTouchListener {
             clearPointsCounter++;
             scratchProgress = ((float) clearPointsCounter) / (gridSize * gridSize) * 100.0f;
             reportScratchProgress();
-            reportCriticalProgress();
+
+            if (criticalRadiusSq > 0) {
+                // This is the distance to the center of the circle at
+                // centerX, centerY
+                //
+                float offsetX = criticalCenterX - x;
+                float offsetY = criticalCenterY - y;
+                float distSquared = offsetX * offsetX + offsetY * offsetY;
+
+                Log.d(
+                    "ReactItch",
+                    "Received point @ (" +
+                    x +
+                    ", " +
+                    y +
+                    ") Offset X = " +
+                    offsetX +
+                    ", offsetY = " +
+                    offsetY +
+                    ", distSquared = " +
+                    distSquared +
+                    ",criticalRadiusSq = " +
+                    criticalRadiusSq
+                );
+
+                // If that distance is less than the radius, then we're
+                // inside the circle and we count the point as being
+                // critical
+                //
+                if (distSquared <= criticalRadiusSq) {
+                    clearedCriticalPoints++;
+                    criticalProgress = ((float) clearedCriticalPoints) / totalCriticalPoints * 100.0f;
+                    reportCriticalProgress();
+                }
+
+                reportCriticalScratchState();
+            }
+
             if (!cleared && scratchProgress > threshold) {
                 cleared = true;
                 reportScratchState();
-                reportCriticalScratchState();
             }
         }
     }
@@ -283,7 +319,7 @@ public class ScratchView extends View implements View.OnTouchListener {
         final Context context = getContext();
         if (context instanceof ReactContext) {
             WritableMap event = Arguments.createMap();
-            event.putDouble("progressValue", Math.round(scratchProgress * 100.0f) / 100.0);
+            event.putDouble("progressValue", Math.round(criticalProgress * 100.0f) / 100.0);
             ((ReactContext) context).getJSModule(RCTEventEmitter.class)
                 .receiveEvent(getId(), RNTScratchViewManager.EVENT_CRITICAL_PROGRESS_CHANGED, event);
         }
