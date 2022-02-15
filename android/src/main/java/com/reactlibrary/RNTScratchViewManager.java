@@ -60,6 +60,13 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
         }
     }
 
+    @ReactProp(name = "criticalColor")
+    public void setCriticalColor(final ScratchView scratchView, @Nullable String criticalColor) {
+        if (scratchView != null) {
+            scratchView.setCriticalColor(criticalColor);
+        }
+    }
+
     @ReactProp(name = "criticalRadius")
     public void setCriticalRadius(final ScratchView scratchView, @Nullable float criticalRadius) {
         if (scratchView != null) {

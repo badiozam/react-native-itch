@@ -45,6 +45,7 @@ public class ScratchView extends View implements View.OnTouchListener {
     int clearPointsCounter;
     float scratchProgress;
     int placeholderColor = -1;
+    int criticalColor = -1;
 
     boolean criticalCleared;
     float totalCriticalPoints;
@@ -92,7 +93,6 @@ public class ScratchView extends View implements View.OnTouchListener {
         pathPaint.setAntiAlias(true);
 
         criticalPaint.setStyle(Paint.Style.FILL);
-        criticalPaint.setColor(Color.GRAY);
 
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
@@ -101,6 +101,17 @@ public class ScratchView extends View implements View.OnTouchListener {
         if (placeholderColor != null) {
             try {
                 this.placeholderColor = Color.parseColor(placeholderColor);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public void setCriticalColor(@Nullable String criticalColorStr) {
+        if (criticalColorStr != null) {
+            try {
+                this.criticalColor = Color.parseColor(criticalColorStr);
+                criticalPaint.setColor(this.criticalColor);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -193,9 +204,12 @@ public class ScratchView extends View implements View.OnTouchListener {
     }
 
     public void reset() {
+        // Default brush size is 10% of the smallest dimension
+        // Max brush size of 33% of the smallest dimension
+        //
         minDimension = getWidth() > getHeight() ? getHeight() : getWidth();
         brushSize = brushSize > 0 ? brushSize : (minDimension / 10.0f);
-        brushSize = Math.max(1, Math.min(minDimension / 4.0f, brushSize));
+        brushSize = Math.max(1, Math.min(minDimension / 3.0f, brushSize));
         threshold = threshold > 0 ? threshold : 50;
 
         loadImage();
@@ -208,7 +222,7 @@ public class ScratchView extends View implements View.OnTouchListener {
 
     public void initGrid() {
         gridSize = (float) Math.max(Math.min(Math.ceil(minDimension / brushSize), 29), 9);
-        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq) / brushSize;
+        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq) / gridSize;
 
         grid = new ArrayList();
         for (int x = 0; x < gridSize; x++) {
@@ -267,15 +281,15 @@ public class ScratchView extends View implements View.OnTouchListener {
                 //
                 if (distSquared <= criticalRadiusSq) {
                     clearedCriticalPoints++;
-                    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
+                    criticalProgress = ((float) clearedCriticalPoints) / totalCriticalPoints * 100.0f;
                     Log.d(
                         "ReactItch",
                         "Critical progress: " +
                         clearedCriticalPoints +
-                        " @ brush size " +
-                        brushSize +
+                        " @ grid size " +
+                        gridSize +
                         " => " +
-                        (clearedCriticalPoints * brushSize * brushSize) +
+                        (clearedCriticalPoints * brushSize) +
                         " / " +
                         totalCriticalPoints +
                         " = " +
@@ -397,7 +411,7 @@ public class ScratchView extends View implements View.OnTouchListener {
 
         canvas.drawBitmap(image, new Rect(0, 0, image.getWidth(), image.getHeight()), imageRect, imagePaint);
 
-        if (!imageTakenFromView && criticalRadius > 0) {
+        if (!imageTakenFromView && criticalRadius > 0 & this.criticalColor != -1) {
             canvas.drawCircle(criticalCenterX, criticalCenterY, criticalRadius, criticalPaint);
         }
 
