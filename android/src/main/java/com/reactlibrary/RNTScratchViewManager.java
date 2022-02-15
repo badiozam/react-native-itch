@@ -3,6 +3,7 @@ package com.como.RNTScratchView;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
@@ -34,7 +35,7 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     @ReactProp(name = "brushSize")
     public void setBrushSize(final ScratchView scratchView, float brushSize) {
         if (scratchView != null) {
-            scratchView.setBrushSize(brushSize);
+            scratchView.setBrushSize(PixelUtil.toPixelFromDIP(brushSize));
         }
     }
 
@@ -69,21 +70,21 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     @ReactProp(name = "criticalRadius")
     public void setCriticalRadius(final ScratchView scratchView, @Nullable float criticalRadius) {
         if (scratchView != null) {
-            scratchView.setCriticalRadius(criticalRadius);
+            scratchView.setCriticalRadius(PixelUtil.toPixelFromDIP(criticalRadius));
         }
     }
 
     @ReactProp(name = "criticalCenterX")
     public void setCriticalCenterX(final ScratchView scratchView, @Nullable float criticalCenterX) {
         if (scratchView != null) {
-            scratchView.setCriticalCenterX(criticalCenterX);
+            scratchView.setCriticalCenterX(PixelUtil.toPixelFromDIP(criticalCenterX));
         }
     }
 
     @ReactProp(name = "criticalCenterY")
     public void setCriticalCenterY(final ScratchView scratchView, @Nullable float criticalCenterY) {
         if (scratchView != null) {
-            scratchView.setCriticalCenterY(criticalCenterY);
+            scratchView.setCriticalCenterY(PixelUtil.toPixelFromDIP(criticalCenterY));
         }
     }
 

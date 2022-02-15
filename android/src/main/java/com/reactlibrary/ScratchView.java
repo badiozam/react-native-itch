@@ -119,15 +119,18 @@ public class ScratchView extends View implements View.OnTouchListener {
     }
 
     public void setCriticalRadius(float criticalRadius) {
+        Log.d("ReactItch", "Critical radius set to " + criticalRadius);
         this.criticalRadius = criticalRadius;
         this.criticalRadiusSq = criticalRadius * criticalRadius;
     }
 
     public void setCriticalCenterX(float criticalCenterX) {
+        Log.d("ReactItch", "Center X set to " + criticalCenterX);
         this.criticalCenterX = criticalCenterX;
     }
 
     public void setCriticalCenterY(float criticalCenterY) {
+        Log.d("ReactItch", "Center Y set to " + criticalCenterX);
         this.criticalCenterY = criticalCenterY;
     }
 
