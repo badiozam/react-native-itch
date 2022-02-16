@@ -18,6 +18,7 @@
   UIImage *image;
   UIBezierPath *path;
   float minDimension;
+  float maxDimension;
   float gridSize;
   NSMutableArray *grid;
   bool cleared;
