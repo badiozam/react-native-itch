@@ -45,7 +45,18 @@ public class ScratchView extends View implements View.OnTouchListener {
     int clearPointsCounter;
     float scratchProgress;
     int placeholderColor = -1;
+    int criticalColor = -1;
 
+    boolean criticalCleared;
+    float totalCriticalPoints;
+    int clearedCriticalPoints;
+    float criticalProgress;
+    float criticalRadius = 0;
+    float criticalRadiusSq = 0;
+    float criticalCenterX = 0;
+    float criticalCenterY = 0;
+
+    Paint criticalPaint = new Paint();
     Paint imagePaint = new Paint();
     Paint pathPaint = new Paint();
 
@@ -81,6 +92,8 @@ public class ScratchView extends View implements View.OnTouchListener {
         pathPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         pathPaint.setAntiAlias(true);
 
+        criticalPaint.setStyle(Paint.Style.FILL);
+
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
@@ -94,12 +107,39 @@ public class ScratchView extends View implements View.OnTouchListener {
         }
     }
 
+    public void setCriticalColor(@Nullable String criticalColorStr) {
+        if (criticalColorStr != null) {
+            try {
+                this.criticalColor = Color.parseColor(criticalColorStr);
+                criticalPaint.setColor(this.criticalColor);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public void setCriticalRadius(float criticalRadius) {
+        Log.d("ReactItch", "Critical radius set to " + criticalRadius);
+        this.criticalRadius = criticalRadius;
+        this.criticalRadiusSq = criticalRadius * criticalRadius;
+    }
+
+    public void setCriticalCenterX(float criticalCenterX) {
+        Log.d("ReactItch", "Center X set to " + criticalCenterX);
+        this.criticalCenterX = criticalCenterX;
+    }
+
+    public void setCriticalCenterY(float criticalCenterY) {
+        Log.d("ReactItch", "Center Y set to " + criticalCenterX);
+        this.criticalCenterY = criticalCenterY;
+    }
+
     public void setThreshold(float threshold) {
         this.threshold = threshold;
     }
 
     public void setBrushSize(float brushSize) {
-        this.brushSize = brushSize * 3;
+        this.brushSize = brushSize;
     }
 
     public void setImageUrl(String imageUrl) {
@@ -167,19 +207,24 @@ public class ScratchView extends View implements View.OnTouchListener {
     }
 
     public void reset() {
+        // Default brush size is 10% of the smallest dimension
+        // Max brush size of 33% of the smallest dimension
+        //
         minDimension = getWidth() > getHeight() ? getHeight() : getWidth();
         brushSize = brushSize > 0 ? brushSize : (minDimension / 10.0f);
-        brushSize = Math.max(1, Math.min(100, brushSize));
+        brushSize = Math.max(1, Math.min(minDimension / 3.0f, brushSize));
         threshold = threshold > 0 ? threshold : 50;
 
         loadImage();
         initGrid();
         reportScratchProgress();
         reportScratchState();
+        reportCriticalProgress();
     }
 
     public void initGrid() {
         gridSize = (float) Math.max(Math.min(Math.ceil(minDimension / brushSize), 29), 9);
+        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq);
 
         grid = new ArrayList();
         for (int x = 0; x < gridSize; x++) {
@@ -191,6 +236,10 @@ public class ScratchView extends View implements View.OnTouchListener {
         clearPointsCounter = 0;
         cleared = false;
         scratchProgress = 0;
+
+        criticalCleared = false;
+        criticalProgress = 0;
+        clearedCriticalPoints = 0;
     }
 
     public void updateGrid(int x, int y) {
@@ -203,6 +252,34 @@ public class ScratchView extends View implements View.OnTouchListener {
             clearPointsCounter++;
             scratchProgress = ((float) clearPointsCounter) / (gridSize * gridSize) * 100.0f;
             reportScratchProgress();
+
+            if (criticalRadiusSq > 0) {
+                // This is the distance to the center of the circle at
+                // centerX, centerY
+                //
+                float offsetX = criticalCenterX - x;
+                float offsetY = criticalCenterY - y;
+                float distSquared = offsetX * offsetX + offsetY * offsetY;
+
+                // If that distance is less than the radius, then we're
+                // inside the circle and we count the point as being
+                // critical
+                //
+                if (distSquared <= criticalRadiusSq) {
+                    clearedCriticalPoints++;
+                    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
+                    reportCriticalProgress();
+                }
+
+                // Threshold applies to the critical area if one is specified
+                // otherwise, we treat the whole image as a critical area
+                //
+                if (!cleared && criticalProgress > threshold) {
+                    cleared = true;
+                    reportScratchState();
+                }
+            }
+
             if (!cleared && scratchProgress > threshold) {
                 cleared = true;
                 reportScratchState();
@@ -250,6 +327,16 @@ public class ScratchView extends View implements View.OnTouchListener {
         }
     }
 
+    public void reportCriticalProgress() {
+        final Context context = getContext();
+        if (context instanceof ReactContext) {
+            WritableMap event = Arguments.createMap();
+            event.putDouble("progressValue", Math.round(criticalProgress * 100.0f) / 100.0);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), RNTScratchViewManager.EVENT_CRITICAL_PROGRESS_CHANGED, event);
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         if (!inited && getWidth() > 0) {
@@ -292,6 +379,10 @@ public class ScratchView extends View implements View.OnTouchListener {
         }
 
         canvas.drawBitmap(image, new Rect(0, 0, image.getWidth(), image.getHeight()), imageRect, imagePaint);
+
+        if (!imageTakenFromView && criticalRadius > 0 & this.criticalColor != -1) {
+            canvas.drawCircle(criticalCenterX, criticalCenterY, criticalRadius, criticalPaint);
+        }
 
         if (path != null) {
             canvas.drawPath(path, pathPaint);

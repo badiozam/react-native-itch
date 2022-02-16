@@ -11,7 +11,10 @@
 @synthesize bridge = _bridge;
 
 RCT_EXPORT_MODULE();
-RCT_EXPORT_VIEW_PROPERTY(placeholderColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(criticalColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(criticalRadius, float)
+RCT_EXPORT_VIEW_PROPERTY(criticalCenterX, float)
+RCT_EXPORT_VIEW_PROPERTY(criticalCenterY, float)
 RCT_EXPORT_VIEW_PROPERTY(threshold, float)
 RCT_EXPORT_VIEW_PROPERTY(brushSize, float)
 RCT_EXPORT_VIEW_PROPERTY(imageUrl, NSString);
@@ -21,6 +24,7 @@ RCT_EXPORT_VIEW_PROPERTY(resizeMode, NSString);
 RCT_EXPORT_VIEW_PROPERTY(onImageLoadFinished, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onTouchStateChanged, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onScratchProgressChanged, RCTBubblingEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onCriticalProgressChanged, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onScratchDone, RCTBubblingEventBlock);
 
 RCT_EXPORT_METHOD(reset:(nonnull NSNumber *)reactTag)
@@ -50,6 +54,13 @@ RCT_EXPORT_METHOD(reset:(nonnull NSNumber *)reactTag)
   NSString* formattedScratchProgress = [NSString stringWithFormat:@"%.02f", scratchProgress];
   if (sender.onScratchProgressChanged) {
     sender.onScratchProgressChanged(@{@"progressValue": formattedScratchProgress});
+  }
+}
+
+- (void)onCriticalProgressChanged:(ScratchView *)sender didChangeProgress:(CGFloat)criticalProgress {
+  NSString* formattedCriticalProgress = [NSString stringWithFormat:@"%.02f", criticalProgress];
+  if (sender.onCriticalProgressChanged) {
+    sender.onCriticalProgressChanged(@{@"progressValue": formattedCriticalProgress});
   }
 }
 

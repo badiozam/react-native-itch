@@ -73,6 +73,13 @@ class ScratchView extends Component {
     }
   };
 
+  _onCriticalProgressChanged = (e) => {
+    const { id, onCriticalProgressChanged } = this.props;
+    const { progressValue } = e.nativeEvent;
+    onCriticalProgressChanged &&
+      onCriticalProgressChanged({ id, value: parseFloat(progressValue) });
+  };
+
   fadeOut(postAction) {
     if (this.props.fadeOut === false) {
       postAction && postAction();
@@ -96,6 +103,7 @@ class ScratchView extends Component {
           onTouchStateChanged={this._onTouchStateChanged}
           onScratchProgressChanged={this._onScratchProgressChanged}
           onScratchDone={this._onScratchDone}
+          onCriticalProgressChanged={this._onCriticalProgressChanged}
         />
       );
     }

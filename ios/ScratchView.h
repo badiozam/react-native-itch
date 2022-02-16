@@ -9,7 +9,9 @@
   NSString *resourceName;
   NSString *resizeMode;
   CGRect imageRect;
+  CGRect criticalCircleRect;
   UIColor *placeholderColor;
+  UIColor *criticalColor;
   float threshold;
   float brushSize;
   UIImage *backgroundColorImage;
@@ -23,6 +25,14 @@
   float scratchProgress;
   bool imageTakenFromView;
 
+  float totalCriticalPoints;
+  int clearedCriticalPoints;
+  float criticalProgress;
+  float criticalRadius;
+  float criticalRadiusSq;
+  float criticalCenterX;
+  float criticalCenterY;
+
   id<ScratchViewDelegate> _delegate;
 }
 
@@ -31,6 +41,7 @@
 @property(nonatomic, copy) RCTBubblingEventBlock onImageLoadFinished;
 @property(nonatomic, copy) RCTBubblingEventBlock onTouchStateChanged;
 @property(nonatomic, copy) RCTBubblingEventBlock onScratchProgressChanged;
+@property(nonatomic, copy) RCTBubblingEventBlock onCriticalProgressChanged;
 @property(nonatomic, copy) RCTBubblingEventBlock onScratchDone;
 
 - (id)init;

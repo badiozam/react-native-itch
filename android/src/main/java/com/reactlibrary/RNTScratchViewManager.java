@@ -3,6 +3,7 @@ package com.como.RNTScratchView;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
@@ -15,6 +16,7 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     public static final String EVENT_TOUCH_STATE_CHANGED = "onTouchStateChanged";
     public static final String EVENT_SCRATCH_PROGRESS_CHANGED = "onScratchProgressChanged";
     public static final String EVENT_SCRATCH_DONE = "onScratchDone";
+    public static final String EVENT_CRITICAL_PROGRESS_CHANGED = "onCriticalProgressChanged";
 
     @ReactProp(name = "placeholderColor")
     public void setPlaceholderColor(final ScratchView scratchView, @Nullable String placeholderColor) {
@@ -33,7 +35,7 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
     @ReactProp(name = "brushSize")
     public void setBrushSize(final ScratchView scratchView, float brushSize) {
         if (scratchView != null) {
-            scratchView.setBrushSize(brushSize);
+            scratchView.setBrushSize(PixelUtil.toPixelFromDIP(brushSize));
         }
     }
 
@@ -51,17 +53,38 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
         }
     }
 
-    @ReactProp(name = "localImageName") // deprecated
-    public void setLocalImageName(final ScratchView scratchView, @Nullable String localImageName) {
-        if (scratchView != null) {
-            scratchView.setResourceName(localImageName);
-        }
-    }
-
     @ReactProp(name = "resizeMode")
     public void setResizeMode(final ScratchView scratchView, @Nullable String resizeMode) {
         if (scratchView != null) {
             scratchView.setResizeMode(resizeMode);
+        }
+    }
+
+    @ReactProp(name = "criticalColor")
+    public void setCriticalColor(final ScratchView scratchView, @Nullable String criticalColor) {
+        if (scratchView != null) {
+            scratchView.setCriticalColor(criticalColor);
+        }
+    }
+
+    @ReactProp(name = "criticalRadius")
+    public void setCriticalRadius(final ScratchView scratchView, @Nullable float criticalRadius) {
+        if (scratchView != null) {
+            scratchView.setCriticalRadius(PixelUtil.toPixelFromDIP(criticalRadius));
+        }
+    }
+
+    @ReactProp(name = "criticalCenterX")
+    public void setCriticalCenterX(final ScratchView scratchView, @Nullable float criticalCenterX) {
+        if (scratchView != null) {
+            scratchView.setCriticalCenterX(PixelUtil.toPixelFromDIP(criticalCenterX));
+        }
+    }
+
+    @ReactProp(name = "criticalCenterY")
+    public void setCriticalCenterY(final ScratchView scratchView, @Nullable float criticalCenterY) {
+        if (scratchView != null) {
+            scratchView.setCriticalCenterY(PixelUtil.toPixelFromDIP(criticalCenterY));
         }
     }
 
@@ -99,6 +122,10 @@ public class RNTScratchViewManager extends SimpleViewManager<ScratchView> {
                 MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_PROGRESS_CHANGED))
             )
             .put(EVENT_SCRATCH_DONE, MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_SCRATCH_DONE)))
+            .put(
+                EVENT_CRITICAL_PROGRESS_CHANGED,
+                MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", EVENT_CRITICAL_PROGRESS_CHANGED))
+            )
             .build();
     }
 }
