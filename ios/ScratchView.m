@@ -133,6 +133,7 @@
 -(void) reset {
 
   minDimension = self.frame.size.width > self.frame.size.height ? self.frame.size.height: self.frame.size.width;
+  maxDimension = self.frame.size.width < self.frame.size.height ? self.frame.size.height: self.frame.size.width;
   brushSize = brushSize > 0 ? brushSize : minDimension / 10.0f;
   brushSize = MAX(1, MIN(minDimension / 3.0f, brushSize));
   threshold = threshold > 0 ? threshold : 50;
@@ -149,7 +150,8 @@
 -(void) initGrid
 { 
   gridSize = MAX(MIN(ceil(minDimension / brushSize), 29), 9);
-  totalCriticalPoints = M_PI * criticalRadiusSq;
+  float criticalCircleRatio = (4 * criticalRadiusSq) / (minDimension * maxDimension);
+  totalCriticalPoints = (gridSize * gridSize) * criticalCircleRatio;
   grid = [[NSMutableArray alloc] initWithCapacity: gridSize];
   for (int x = 0; x < gridSize; x++)
   {
@@ -182,11 +184,13 @@
     if (criticalRadiusSq > 0 ) {
 	    float offsetX = criticalCenterX - point.x;
 	    float offsetY = criticalCenterY - point.y;
-	    float distSquared = offsetX * offsetX + offsetY * offsetY;
+	    float distXSq = offsetX * offsetX;
+	    float distYSq = offsetY * offsetY;
+	    float criticalRadiusDistSq = criticalRadiusSq + (brushSize * brushSize);
 
-	    if ( distSquared <= criticalRadiusSq ) {
+	    if ( distXSq <= criticalRadiusDistSq && distYSq <= criticalRadiusDistSq ) {
 		    clearedCriticalPoints++;
-		    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
+		    criticalProgress = ((float) clearedCriticalPoints) / totalCriticalPoints * 100.0f;
 		    [self reportCriticalProgress];
 	    }
 
