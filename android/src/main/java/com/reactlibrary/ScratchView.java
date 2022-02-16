@@ -39,6 +39,7 @@ public class ScratchView extends View implements View.OnTouchListener {
     Bitmap image;
     Path path;
     float minDimension;
+    float maxDimension;
     float gridSize;
     ArrayList<ArrayList<Boolean>> grid;
     boolean cleared;
@@ -211,6 +212,7 @@ public class ScratchView extends View implements View.OnTouchListener {
         // Max brush size of 33% of the smallest dimension
         //
         minDimension = getWidth() > getHeight() ? getHeight() : getWidth();
+        maxDimension = getWidth() < getHeight() ? getHeight() : getWidth();
         brushSize = brushSize > 0 ? brushSize : (minDimension / 10.0f);
         brushSize = Math.max(1, Math.min(minDimension / 3.0f, brushSize));
         threshold = threshold > 0 ? threshold : 50;
@@ -224,7 +226,8 @@ public class ScratchView extends View implements View.OnTouchListener {
 
     public void initGrid() {
         gridSize = (float) Math.max(Math.min(Math.ceil(minDimension / brushSize), 29), 9);
-        totalCriticalPoints = (float) (Math.PI * criticalRadiusSq);
+        float criticalCircleRatio = (4 * criticalRadiusSq) / (minDimension * maxDimension);
+        totalCriticalPoints = (gridSize * gridSize) * criticalCircleRatio;
 
         grid = new ArrayList();
         for (int x = 0; x < gridSize; x++) {
@@ -259,15 +262,17 @@ public class ScratchView extends View implements View.OnTouchListener {
                 //
                 float offsetX = criticalCenterX - x;
                 float offsetY = criticalCenterY - y;
-                float distSquared = offsetX * offsetX + offsetY * offsetY;
+                float distXSq = offsetX * offsetX;
+                float distYSq = offsetY * offsetY;
+                float criticalRadiusDistSq = criticalRadiusSq + (brushSize * brushSize);
 
                 // If that distance is less than the radius, then we're
                 // inside the circle and we count the point as being
                 // critical
                 //
-                if (distSquared <= criticalRadiusSq) {
+                if (distXSq <= criticalRadiusSq && distYSq <= criticalRadiusSq) {
                     clearedCriticalPoints++;
-                    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
+                    criticalProgress = ((float) clearedCriticalPoints) / totalCriticalPoints * 100.0f;
                     reportCriticalProgress();
                 }
 
