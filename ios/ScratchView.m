@@ -45,10 +45,29 @@
   imageUrl = url;
 }
 
-// Deprecated
--(void) setLocalImageName: (NSString *)imageName
+-(void) setCriticalColor:(NSString *)colorString
 {
-    resourceName = imageName;
+  @try {
+    self->criticalColor = [ScratchViewTools colorFromHexString:colorString];
+  }
+  @catch (NSException *exception) {
+    NSLog(@"criticalColor error: %@", exception.reason);
+  }
+}
+
+-(void) setCriticalRadius: (float)criticalRadius
+{
+    self->criticalRadius = criticalRadius;
+}
+
+-(void) setCriticalCenterX: (float)criticalCenterX
+{
+    self->criticalCenterX = criticalCenterX;
+}
+
+-(void) setCriticalCenterY: (float)criticalCenterY
+{
+    self->criticalCenterY = criticalCenterY;
 }
 
 -(void) setResourceName: (NSString *)resourceName
@@ -152,6 +171,11 @@
     scratchProgress = ((float)clearPointsCounter) / (gridSize*gridSize) * 100.0f;
     [self reportScratchProgress];
   }
+
+  if (!cleared && scratchProgress > threshold) {
+    cleared = true;
+    [self reportScratchState];
+  }
 }
 
 -(void) drawImageStart {
@@ -181,15 +205,43 @@
     } else {
     }
     imageRect = CGRectMake(-offsetX, -offsetY, selfSize.width + (offsetX * 2), selfSize.height + (offsetY * 2));
+
+    if (image == nil) {
+      return;
+    } else {
+        [image drawInRect:imageRect];
+    }
+
+    // Critical circle
+    if ( criticalRadius > 0 ) {
+      UIColor *criticalBackgroundColor = criticalColor != nil ? criticalColor : [UIColor grayColor];
+      CGContextRef ctx = UIGraphicsGetCurrentContext();
+
+      CGContextSetFillColorWithColor(ctx, criticalColor.CGColor);
+      CGContextSetStrokeColorWithColor(ctx, criticalColor.CGColor);
+      CGRect circleRect = CGRectMake( criticalCenterX - criticalRadius, criticalCenterY - criticalRadius, criticalRadius*2, criticalRadius*2);
+      //criticalCircleRect = CGRectInset(circleRect, -criticalRadius, -criticalRadius);
+        criticalCircleRect = circleRect;
+
+      // Stroke
+      CGContextStrokeEllipseInRect(ctx, criticalCircleRect);
+      CGContextFillEllipseInRect(ctx, criticalCircleRect);
+
+    }
+    else {
+      criticalCircleRect = CGRectMake(0, 0, selfSize.width, selfSize.height);
+    }
+
   }
   else {
     imageRect = CGRectMake(0, 0, selfSize.width, selfSize.height);
+
+    if (image == nil) {
+      return;
+    }
+    [image drawInRect:imageRect];
   }
-  
-  if (image == nil) {
-    return;
-  }
-  [image drawInRect:imageRect];
+
 }
 
 - (UIImage *) drawImage
@@ -230,10 +282,6 @@
   CGPoint point = [touch locationInView:self];
   [path addLineToPoint:point];
   [self updateGrid: point];
-  if (!cleared && scratchProgress > threshold) {
-    cleared = true;
-    [self reportScratchState];
-  }
   [self drawImage];
 }
 

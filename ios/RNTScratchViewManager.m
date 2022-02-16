@@ -11,7 +11,10 @@
 @synthesize bridge = _bridge;
 
 RCT_EXPORT_MODULE();
-RCT_EXPORT_VIEW_PROPERTY(placeholderColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(criticalColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(criticalRadius, float)
+RCT_EXPORT_VIEW_PROPERTY(criticalCenterX, float)
+RCT_EXPORT_VIEW_PROPERTY(criticalCenterY, float)
 RCT_EXPORT_VIEW_PROPERTY(threshold, float)
 RCT_EXPORT_VIEW_PROPERTY(brushSize, float)
 RCT_EXPORT_VIEW_PROPERTY(imageUrl, NSString);

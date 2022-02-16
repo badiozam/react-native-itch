@@ -9,7 +9,9 @@
   NSString *resourceName;
   NSString *resizeMode;
   CGRect imageRect;
+  CGRect criticalCircleRect;
   UIColor *placeholderColor;
+  UIColor *criticalColor;
   float threshold;
   float brushSize;
   UIImage *backgroundColorImage;
@@ -22,6 +24,9 @@
   int clearPointsCounter;
   float scratchProgress;
   bool imageTakenFromView;
+  float criticalRadius;
+  float criticalCenterX;
+  float criticalCenterY;
 
   id<ScratchViewDelegate> _delegate;
 }
