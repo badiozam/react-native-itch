@@ -24,6 +24,7 @@ RCT_EXPORT_VIEW_PROPERTY(resizeMode, NSString);
 RCT_EXPORT_VIEW_PROPERTY(onImageLoadFinished, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onTouchStateChanged, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onScratchProgressChanged, RCTBubblingEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onCriticalProgressChanged, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onScratchDone, RCTBubblingEventBlock);
 
 RCT_EXPORT_METHOD(reset:(nonnull NSNumber *)reactTag)
@@ -53,6 +54,13 @@ RCT_EXPORT_METHOD(reset:(nonnull NSNumber *)reactTag)
   NSString* formattedScratchProgress = [NSString stringWithFormat:@"%.02f", scratchProgress];
   if (sender.onScratchProgressChanged) {
     sender.onScratchProgressChanged(@{@"progressValue": formattedScratchProgress});
+  }
+}
+
+- (void)onCriticalProgressChanged:(ScratchView *)sender didChangeProgress:(CGFloat)criticalProgress {
+  NSString* formattedCriticalProgress = [NSString stringWithFormat:@"%.02f", criticalProgress];
+  if (sender.onCriticalProgressChanged) {
+    sender.onCriticalProgressChanged(@{@"progressValue": formattedCriticalProgress});
   }
 }
 

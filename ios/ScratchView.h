@@ -24,7 +24,12 @@
   int clearPointsCounter;
   float scratchProgress;
   bool imageTakenFromView;
+
+  float totalCriticalPoints;
+  int clearedCriticalPoints;
+  float criticalProgress;
   float criticalRadius;
+  float criticalRadiusSq;
   float criticalCenterX;
   float criticalCenterY;
 
@@ -36,6 +41,7 @@
 @property(nonatomic, copy) RCTBubblingEventBlock onImageLoadFinished;
 @property(nonatomic, copy) RCTBubblingEventBlock onTouchStateChanged;
 @property(nonatomic, copy) RCTBubblingEventBlock onScratchProgressChanged;
+@property(nonatomic, copy) RCTBubblingEventBlock onCriticalProgressChanged;
 @property(nonatomic, copy) RCTBubblingEventBlock onScratchDone;
 
 - (id)init;

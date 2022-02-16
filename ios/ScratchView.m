@@ -58,6 +58,7 @@
 -(void) setCriticalRadius: (float)criticalRadius
 {
     self->criticalRadius = criticalRadius;
+    self->criticalRadiusSq = criticalRadius * criticalRadius;
 }
 
 -(void) setCriticalCenterX: (float)criticalCenterX
@@ -130,21 +131,25 @@
 }
 
 -(void) reset {
+
   minDimension = self.frame.size.width > self.frame.size.height ? self.frame.size.height: self.frame.size.width;
   brushSize = brushSize > 0 ? brushSize : minDimension / 10.0f;
-  brushSize = MAX(1, MIN(100, brushSize));
+  brushSize = MAX(1, MIN(minDimension / 3.0f, brushSize));
   threshold = threshold > 0 ? threshold : 50;
   threshold = MAX(1, MIN(100, threshold));
+
   path = nil;
   [self loadImage];
   [self initGrid];
   [self reportScratchProgress];
   [self reportScratchState];
+  [self reportCriticalProgress];
 }
 
 -(void) initGrid
 { 
   gridSize = MAX(MIN(ceil(minDimension / brushSize), 29), 9);
+  totalCriticalPoints = M_PI * criticalRadiusSq;
   grid = [[NSMutableArray alloc] initWithCapacity: gridSize];
   for (int x = 0; x < gridSize; x++)
   {
@@ -157,6 +162,9 @@
   clearPointsCounter = 0;
   cleared = false;
   scratchProgress = 0;
+
+  criticalProgress = 0;
+  clearedCriticalPoints = 0;
 }
 
 -(void) updateGrid: (CGPoint)point
@@ -170,6 +178,23 @@
     clearPointsCounter++;
     scratchProgress = ((float)clearPointsCounter) / (gridSize*gridSize) * 100.0f;
     [self reportScratchProgress];
+
+    if (criticalRadiusSq > 0 ) {
+	    float offsetX = criticalCenterX - point.x;
+	    float offsetY = criticalCenterY - point.y;
+	    float distSquared = offsetX * offsetX + offsetY * offsetY;
+
+	    if ( distSquared <= criticalRadiusSq ) {
+		    clearedCriticalPoints++;
+		    criticalProgress = ((float) clearedCriticalPoints * brushSize * brushSize) / totalCriticalPoints * 100.0f;
+		    [self reportCriticalProgress];
+	    }
+
+	    if (!cleared && criticalProgress > threshold) {
+		    cleared = true;
+		    [self reportScratchState];
+	    }
+    }
   }
 
   if (!cleared && scratchProgress > threshold) {
@@ -213,15 +238,13 @@
     }
 
     // Critical circle
-    if ( criticalRadius > 0 ) {
-      UIColor *criticalBackgroundColor = criticalColor != nil ? criticalColor : [UIColor grayColor];
+    if ( criticalRadius > 0 && criticalColor != nil ) {
       CGContextRef ctx = UIGraphicsGetCurrentContext();
 
       CGContextSetFillColorWithColor(ctx, criticalColor.CGColor);
       CGContextSetStrokeColorWithColor(ctx, criticalColor.CGColor);
       CGRect circleRect = CGRectMake( criticalCenterX - criticalRadius, criticalCenterY - criticalRadius, criticalRadius*2, criticalRadius*2);
-      //criticalCircleRect = CGRectInset(circleRect, -criticalRadius, -criticalRadius);
-        criticalCircleRect = circleRect;
+      criticalCircleRect = circleRect;
 
       // Stroke
       CGContextStrokeEllipseInRect(ctx, criticalCircleRect);
@@ -316,6 +339,11 @@
 -(void) reportScratchProgress
 {
   [self._delegate onScratchProgressChanged:self didChangeProgress:scratchProgress];
+}
+
+-(void) reportCriticalProgress
+{
+  [self._delegate onCriticalProgressChanged:self didChangeProgress:criticalProgress];
 }
 
 -(void) reportScratchState {
